@@ -9,9 +9,9 @@
 </style></head><body><main class="gate"><section class="sheet"><span aria-hidden="true" class="lock">⌑</span><h1>个人学习空间</h1><p id="feedback" role="status">正在打开学习空间…</p><form id="unlock" hidden><label for="link">专属学习链接</label><input type="password" id="link" autocomplete="off" spellcheck="false" required><button>打开课程</button></form></section></main>
 <script>
 (()=>{
-const bundle='./course-4a882d97841c766a.bin';
+const bundle='./course-733520ae9a05d606.bin';
 const keyStore='lingua-entry:course-key';
-const cacheName='lingua-entry-4a882d97841c766a';
+const cacheName='lingua-entry-733520ae9a05d606';
 const form=document.querySelector('#unlock'),field=document.querySelector('#link'),feedback=document.querySelector('#feedback');
 function ask(text){feedback.textContent=text;form.hidden=false}
 function getKey(value){const fragment=value.includes('#')?value.slice(value.indexOf('#')+1):value;return new URLSearchParams(fragment).get('k')}
