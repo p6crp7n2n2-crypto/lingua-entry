@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
+<title>个人学习空间</title>
+<style id="gate-style">
+*{box-sizing:border-box}body{margin:0;background:#f7f6fc;color:#302a47;font:16px/1.6 system-ui,sans-serif}
+.gate{min-height:90svh;display:grid;place-items:center;padding:24px}.sheet{background:white;border:1px solid #e3dced;border-radius:22px;padding:32px;max-width:440px;width:100%}.lock{display:inline-grid;place-items:center;width:48px;height:48px;background:#eee8fb;color:#6c50ba;border-radius:15px;font-size:24px}.sheet h1{margin:14px 0 7px;font-size:1.65rem}.sheet p{color:#685e77}.sheet input,.sheet button{width:100%;font:inherit;padding:11px 14px;border-radius:9px}.sheet input{border:1px solid #d9d3e4}.sheet button{margin-top:10px;background:#6750b6;color:white;border:0;cursor:pointer}[hidden]{display:none!important}
+</style></head><body><main class="gate"><section class="sheet"><span aria-hidden="true" class="lock">⌑</span><h1>个人学习空间</h1><p id="feedback" role="status">正在打开学习空间…</p><form id="unlock" hidden><label for="link">专属学习链接</label><input type="password" id="link" autocomplete="off" spellcheck="false" required><button>打开课程</button></form></section></main>
+<script>
+(()=>{
+const bundle='./course-8e4832f906eceaca.bin';
+const keyStore='lingua-entry:course-key';
+const cacheName='lingua-entry-8e4832f906eceaca';
+const form=document.querySelector('#unlock'),field=document.querySelector('#link'),feedback=document.querySelector('#feedback');
+function ask(text){feedback.textContent=text;form.hidden=false}
+function getKey(value){const fragment=value.includes('#')?value.slice(value.indexOf('#')+1):value;return new URLSearchParams(fragment).get('k')}
+async function start(code){
+ if(!code||!/^[A-Za-z0-9_-]{43}$/.test(code)){ask('请使用收到的完整专属链接，或将链接粘贴到下方。');return}
+ form.hidden=true;feedback.textContent='正在解锁课程…';
+ try{
+  const raw=Uint8Array.from(atob(code.replace(/-/g,'+').replace(/_/g,'/')+'='),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
+  const cache=window.caches?await caches.open(cacheName).catch(()=>null):null;
+  let file=cache&&await cache.match(bundle);
+  if(!file){file=await fetch(bundle,{referrerPolicy:'no-referrer'});if(!file.ok)throw Error('network');if(cache)await cache.put(bundle,file.clone()).catch(()=>{})}
+  const data=new Uint8Array(await file.arrayBuffer());
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:data.slice(0,12)},key,data.slice(12));
+  const view=JSON.parse(new TextDecoder().decode(plain));
+  try{localStorage.setItem(keyStore,code)}catch{}
+  if(location.hash.startsWith('#k='))history.replaceState(null,'',location.pathname+location.search+'#home');
+  document.title=view.title;
+  document.querySelector('#gate-style').textContent=view.css;
+  document.body.innerHTML=view.body;
+  const script=document.createElement('script');script.textContent=view.js;document.body.append(script);
+ }catch(e){ask(e.name==='OperationError'?'此链接无法解锁本版课程，请重新粘贴完整链接。':'课程暂未载入，请检查网络后重试。')}
+}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+form.addEventListener('submit',e=>{e.preventDefault();const code=getKey(field.value.trim());field.value='';start(code)});
+let saved;try{saved=localStorage.getItem(keyStore)}catch{}start(getKey(location.hash)||saved);
+})();
+</script></body></html>
